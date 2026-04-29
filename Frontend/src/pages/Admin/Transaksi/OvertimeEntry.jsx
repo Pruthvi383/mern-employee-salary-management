@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { Breadcrumb } from '../../../../components';
-import Layout from '../../../../layout';
-import { getMe } from '../../../../config/redux/action';
+import { Breadcrumb } from '../../../components';
+import Layout from '../../../layout';
+import { getMe } from '../../../config/redux/action';
 import { useNavigate } from 'react-router-dom';
-import { formatDate } from '../../../../utils/formatDate';
+import { formatDate } from '../../../utils/formatDate';
 
 const initialFormState = {
     employeeId: '',
