@@ -37,6 +37,11 @@ const Overtime = db.define('overtime_entries', {
             len: [10, 1000]
         }
     },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW
+    },
     status: {
         type: DataTypes.ENUM('pending', 'approved', 'rejected'),
         allowNull: false,
@@ -51,7 +56,13 @@ const Overtime = db.define('overtime_entries', {
         allowNull: true
     }
 }, {
-    freezeTableName: true
+    freezeTableName: true,
+    indexes: [
+        {
+            unique: true,
+            fields: ['employeeId', 'date']
+        }
+    ]
 });
 
 DataPegawai.hasMany(Overtime, {

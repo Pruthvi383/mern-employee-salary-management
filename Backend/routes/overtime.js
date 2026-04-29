@@ -8,8 +8,8 @@ import {
 
 const router = express.Router();
 
-router.get('/api/overtime', verifyUser, adminOnly, getOvertimeEntries);
-router.post('/api/overtime', verifyUser, adminOnly, createOvertimeEntry);
-router.patch('/api/overtime/:id/approval', verifyUser, adminOnly, updateOvertimeApproval);
+router.get('/', verifyUser, adminOnly, getOvertimeEntries);
+router.post('/', verifyUser, adminOnly, createOvertimeEntry);
+router.patch('/:id/approval', verifyUser, adminOnly, updateOvertimeApproval);
 
 export default router;

@@ -49,7 +49,7 @@ app.use(express.static("public"));
 
 app.use(UserRoute);
 app.use(AuthRoute);
-app.use(OvertimeRoute);
+app.use('/api/overtime', OvertimeRoute);
 
 // store.sync();
 

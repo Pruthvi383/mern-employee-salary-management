@@ -5,6 +5,7 @@ import { Breadcrumb } from '../../../../components';
 import Layout from '../../../../layout';
 import { getMe } from '../../../../config/redux/action';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../../../utils/formatDate';
 
 const initialFormState = {
     employeeId: '',
@@ -21,18 +22,35 @@ const initialErrorState = {
     general: ''
 };
 
-const normalizeDate = (value) => {
-    if (!value) {
+const parseDateInput = (value) => {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
         return null;
     }
 
-    const parsedDate = new Date(`${value}T00:00:00`);
-    if (Number.isNaN(parsedDate.getTime())) {
+    const [year, month, day] = value.split('-').map(Number);
+    const parsedDate = new Date(Date.UTC(year, month - 1, day));
+
+    if (
+        Number.isNaN(parsedDate.getTime()) ||
+        parsedDate.getUTCFullYear() !== year ||
+        parsedDate.getUTCMonth() !== month - 1 ||
+        parsedDate.getUTCDate() !== day
+    ) {
         return null;
     }
 
-    parsedDate.setHours(0, 0, 0, 0);
     return parsedDate;
+};
+
+const getTodayUtc = () => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+};
+
+const addUtcDays = (date, days) => {
+    const shiftedDate = new Date(date);
+    shiftedDate.setUTCDate(shiftedDate.getUTCDate() + days);
+    return shiftedDate;
 };
 
 const OvertimeEntry = () => {
@@ -80,12 +98,9 @@ const OvertimeEntry = () => {
             general: ''
         };
 
-        const selectedDate = normalizeDate(formState.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const oldestAllowedDate = new Date(today);
-        oldestAllowedDate.setDate(oldestAllowedDate.getDate() - 7);
+        const selectedDate = parseDateInput(formState.date);
+        const today = getTodayUtc();
+        const oldestAllowedDate = addUtcDays(today, -7);
 
         if (!formState.employeeId) {
             nextErrors.employeeId = 'Worker is required';
@@ -151,6 +166,10 @@ const OvertimeEntry = () => {
             nextErrors.reason = message;
         } else if (message === 'Employee must exist') {
             nextErrors.employeeId = message;
+        } else if (message === 'Overtime already logged for this worker on this date') {
+            nextErrors.date = message;
+        } else if (message === 'Monthly overtime cap of 60 hours exceeded') {
+            nextErrors.hours = message;
         } else {
             nextErrors.general = message;
         }
@@ -400,7 +419,7 @@ const OvertimeEntry = () => {
                                                 <p className='text-black dark:text-white'>{entry.employeeName}</p>
                                             </td>
                                             <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                                <p className='text-black dark:text-white'>{entry.date}</p>
+                                                <p className='text-black dark:text-white'>{formatDate(entry.date)}</p>
                                             </td>
                                             <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                                 <p className='text-black dark:text-white'>{entry.hours}</p>

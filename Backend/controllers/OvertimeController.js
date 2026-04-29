@@ -2,19 +2,38 @@ import { Op } from 'sequelize';
 import Overtime from '../models/Overtime.js';
 import DataPegawai from '../models/DataPegawaiModel.js';
 
-const normalizeDate = (value) => {
-    if (!value || typeof value !== 'string') {
+const parseDateInput = (value) => {
+    if (!value || typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
         return null;
     }
 
-    const parsedDate = new Date(`${value}T00:00:00`);
-    if (Number.isNaN(parsedDate.getTime())) {
+    const [year, month, day] = value.split('-').map(Number);
+    const parsedDate = new Date(Date.UTC(year, month - 1, day));
+
+    if (
+        Number.isNaN(parsedDate.getTime()) ||
+        parsedDate.getUTCFullYear() !== year ||
+        parsedDate.getUTCMonth() !== month - 1 ||
+        parsedDate.getUTCDate() !== day
+    ) {
         return null;
     }
 
-    parsedDate.setHours(0, 0, 0, 0);
     return parsedDate;
 };
+
+const getTodayUtc = () => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+};
+
+const addUtcDays = (date, days) => {
+    const shiftedDate = new Date(date);
+    shiftedDate.setUTCDate(shiftedDate.getUTCDate() + days);
+    return shiftedDate;
+};
+
+const toDateOnlyString = (date) => date.toISOString().slice(0, 10);
 
 const formatOvertimeEntry = (entry) => ({
     id: entry.id,
@@ -54,12 +73,9 @@ export const getOvertimeEntries = async (_req, res) => {
 
 export const createOvertimeEntry = async (req, res) => {
     const { employeeId, date, hours, reason } = req.body;
-    const selectedDate = normalizeDate(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const oldestAllowedDate = new Date(today);
-    oldestAllowedDate.setDate(oldestAllowedDate.getDate() - 7);
+    const selectedDate = parseDateInput(date);
+    const today = getTodayUtc();
+    const oldestAllowedDate = addUtcDays(today, -7);
 
     if (!employeeId || !date || hours === '' || hours === undefined || hours === null || !reason) {
         return res.status(400).json({ message: 'All fields are required' });
@@ -87,6 +103,7 @@ export const createOvertimeEntry = async (req, res) => {
     }
 
     try {
+        const normalizedDate = toDateOnlyString(selectedDate);
         const employee = await DataPegawai.findByPk(employeeId, {
             attributes: ['id', 'nik', 'nama_pegawai', 'jabatan']
         });
@@ -98,7 +115,7 @@ export const createOvertimeEntry = async (req, res) => {
         const duplicateEntry = await Overtime.findOne({
             where: {
                 employeeId,
-                date
+                date: normalizedDate
             }
         });
 
@@ -106,17 +123,16 @@ export const createOvertimeEntry = async (req, res) => {
             return res.status(400).json({ message: 'Overtime already logged for this worker on this date' });
         }
 
-        const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-        const monthEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
-        monthEnd.setHours(23, 59, 59, 999);
+        const monthStart = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), 1));
+        const monthEnd = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth() + 1, 0));
 
         const monthlyEntries = await Overtime.findAll({
             where: {
                 employeeId,
                 date: {
                     [Op.between]: [
-                        monthStart.toISOString().slice(0, 10),
-                        monthEnd.toISOString().slice(0, 10)
+                        toDateOnlyString(monthStart),
+                        toDateOnlyString(monthEnd)
                     ]
                 }
             }
@@ -130,7 +146,7 @@ export const createOvertimeEntry = async (req, res) => {
 
         const overtimeEntry = await Overtime.create({
             employeeId,
-            date,
+            date: normalizedDate,
             hours: numericHours,
             reason: String(reason).trim()
         });
