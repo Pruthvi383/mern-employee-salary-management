@@ -24,6 +24,7 @@ const hasDatabaseConfig = Boolean(
     process.env.DB_NAME &&
     process.env.DB_USER
 );
+const shouldUsePersistentSessions = hasDatabaseConfig || !process.env.VERCEL;
 
 const sessionStore = SequelizeStore(session.Store);
 const store = hasDatabaseConfig ? new sessionStore({
@@ -51,16 +52,24 @@ app.get('/health', (_req, res) => {
 });
 
 // Middleware
-app.use(session({
-    secret: process.env.SESS_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    ...(store ? { store } : {}),
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-    }
-}));
+if (shouldUsePersistentSessions) {
+    app.use(session({
+        secret: process.env.SESS_SECRET || 'development-session-secret',
+        resave: false,
+        saveUninitialized: false,
+        proxy: true,
+        ...(store ? { store } : {}),
+        cookie: {
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        }
+    }));
+} else {
+    app.use((req, _res, next) => {
+        req.session = {};
+        next();
+    });
+}
 
 app.use(cors({
     credentials: true,
