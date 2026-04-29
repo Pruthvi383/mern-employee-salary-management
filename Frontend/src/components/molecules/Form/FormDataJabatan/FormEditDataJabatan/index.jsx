@@ -24,7 +24,7 @@ const FormEditDataJabatan = () => {
     useEffect(() => {
         const getUserById = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/data_jabatan/${id}`);
+                const response = await axios.get(`/data_jabatan/${id}`);
                 setNamaJabatan(response.data.nama_jabatan);
                 setGajiPokok(response.data.gaji_pokok);
                 setTjTransport(response.data.tj_transport);
@@ -53,7 +53,7 @@ const FormEditDataJabatan = () => {
             formData.append('tj_transport', tjTransport);
             formData.append('uang_makan', uangMakan);
 
-            const response = await axios.patch(`http://localhost:5000/data_jabatan/${id}`, formData, {
+            const response = await axios.patch(`/data_jabatan/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

@@ -69,7 +69,7 @@ const OvertimeEntry = () => {
     const { isError, user } = useSelector((state) => state.auth);
 
     const fetchEmployees = async () => {
-        const response = await axios.get('http://localhost:5000/data_pegawai');
+        const response = await axios.get('/data_pegawai');
         setEmployees(response.data);
     };
 
@@ -77,7 +77,7 @@ const OvertimeEntry = () => {
         setLoadingEntries(true);
 
         try {
-            const response = await axios.get('http://localhost:5000/api/overtime');
+            const response = await axios.get('/api/overtime');
             setOvertimeEntries(response.data);
         } catch (error) {
             setErrors((currentErrors) => ({
@@ -207,7 +207,7 @@ const OvertimeEntry = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/overtime', {
+            const response = await axios.post('/api/overtime', {
                 employeeId: Number(formState.employeeId),
                 date: formState.date,
                 hours: Number(formState.hours),
@@ -235,7 +235,7 @@ const OvertimeEntry = () => {
         }));
 
         try {
-            const response = await axios.patch(`http://localhost:5000/api/overtime/${id}/approval`, {
+            const response = await axios.patch(`/api/overtime/${id}/approval`, {
                 status
             });
             setApprovalMessage(response.data.message);

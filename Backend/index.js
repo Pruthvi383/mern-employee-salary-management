@@ -13,6 +13,10 @@ import OvertimeRoute from './routes/overtime.js';
 import Overtime from './models/Overtime.js';
 
 const app = express();
+const allowedOrigins = (process.env.CLIENT_ORIGINS || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
 const sessionStore = SequelizeStore(session.Store);
 const store = new sessionStore({
@@ -32,13 +36,33 @@ app.use(session({
     saveUninitialized: true,
     store: store,
     cookie: {
-        secure: 'auto'
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
 }));
 
-app.use(cors ({
+app.use(cors({
     credentials: true,
-    origin: 'http://localhost:5173'
+    origin: (origin, callback) => {
+        if (!origin) {
+            callback(null, true);
+            return;
+        }
+
+        try {
+            const hostname = new URL(origin).hostname;
+
+            if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(hostname)) {
+                callback(null, true);
+                return;
+            }
+        } catch (error) {
+            callback(error);
+            return;
+        }
+
+        callback(new Error('Not allowed by CORS'));
+    }
 }));
 
 
@@ -56,7 +80,7 @@ app.use('/api/overtime', OvertimeRoute);
 const startServer = async () => {
     try {
         await Overtime.sync();
-        app.listen(process.env.APP_PORT, () => {
+        app.listen(process.env.PORT || process.env.APP_PORT || 5000, () => {
             console.log('Server up and running...');
         });
     } catch (error) {
@@ -64,4 +88,8 @@ const startServer = async () => {
     }
 };
 
-startServer();
+if (!process.env.VERCEL) {
+    startServer();
+}
+
+export default app;
