@@ -7,6 +7,7 @@ import UbahPasswordAdmin from './PengaturanAdmin/UbahPasswordAdmin';
 import DataKehadiran from './Transaksi/DataKehadiran';
 import DataGaji from './Transaksi/DataGaji';
 import DataPotongan from './Transaksi/DataPotongan';
+import OvertimeEntry from './Transaksi/OvertimeEntry';
 
 export {
     LaporanAbsensi,
@@ -17,5 +18,6 @@ export {
     UbahPasswordAdmin,
     DataKehadiran,
     DataGaji,
-    DataPotongan
+    DataPotongan,
+    OvertimeEntry
 };

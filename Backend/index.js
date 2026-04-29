@@ -9,6 +9,8 @@ import FileUpload from 'express-fileupload';
 
 import UserRoute from './routes/UserRoute.js';
 import AuthRoute from './routes/AuthRoute.js';
+import OvertimeRoute from './routes/overtime.js';
+import Overtime from './models/Overtime.js';
 
 const app = express();
 
@@ -47,9 +49,19 @@ app.use(express.static("public"));
 
 app.use(UserRoute);
 app.use(AuthRoute);
+app.use(OvertimeRoute);
 
 // store.sync();
 
-app.listen(process.env.APP_PORT, () => {
-    console.log('Server up and running...');
-});
+const startServer = async () => {
+    try {
+        await Overtime.sync();
+        app.listen(process.env.APP_PORT, () => {
+            console.log('Server up and running...');
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error.message);
+    }
+};
+
+startServer();
