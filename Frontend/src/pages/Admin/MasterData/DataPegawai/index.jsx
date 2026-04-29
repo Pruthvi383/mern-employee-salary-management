@@ -12,6 +12,27 @@ import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight, MdOutlineKeyboar
 
 const ITEMS_PER_PAGE = 4;
 
+const exportToCSV = (employees) => {
+    const headers = ['Name', 'Designation', 'Department', 'Salary'];
+    const rows = employees.map((employee) => [
+        employee.nama_pegawai || employee.name || '',
+        employee.designation || employee.jabatan || '',
+        employee.department || '',
+        employee.salary || ''
+    ]);
+    const csvContent = [headers, ...rows]
+        .map((row) => row.map((value) => `"${value}"`).join(','))
+        .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+    anchor.download = 'employees.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+};
+
 const DataPegawai = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchKeyword, setSearchKeyword] = useState('');
@@ -156,6 +177,15 @@ const DataPegawai = () => {
                 </ButtonOne>
             </Link>
             <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1 mt-6">
+                <div className="mb-4 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={() => exportToCSV(filteredDataPegawai)}
+                        className="inline-flex items-center justify-center rounded bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90"
+                    >
+                        Download CSV
+                    </button>
+                </div>
                 <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
                     <div className="relative flex-1 md:mr-2 mb-4 md:mb-0">
                         <div className="relative">
