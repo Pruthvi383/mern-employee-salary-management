@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Sequelize } from 'sequelize';
 import mysql2 from 'mysql2';
 

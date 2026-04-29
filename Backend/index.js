@@ -12,29 +12,50 @@ import AuthRoute from './routes/AuthRoute.js';
 import OvertimeRoute from './routes/overtime.js';
 import Overtime from './models/Overtime.js';
 
+dotenv.config();
+
 const app = express();
 const allowedOrigins = (process.env.CLIENT_ORIGINS || 'http://localhost:5173')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+const hasDatabaseConfig = Boolean(
+    process.env.DB_HOST &&
+    process.env.DB_NAME &&
+    process.env.DB_USER
+);
 
 const sessionStore = SequelizeStore(session.Store);
-const store = new sessionStore({
+const store = hasDatabaseConfig ? new sessionStore({
     db: db
-});
+}) : null;
 
 /* (async() => {
     await db.sync();
 })(); */
 
-dotenv.config();
+app.get('/', (_req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        service: 'mern-employee-salary-management-backend',
+        databaseConfigured: hasDatabaseConfig
+    });
+});
+
+app.get('/health', (_req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        service: 'mern-employee-salary-management-backend',
+        databaseConfigured: hasDatabaseConfig
+    });
+});
 
 // Middleware
 app.use(session({
     secret: process.env.SESS_SECRET,
     resave: false,
     saveUninitialized: true,
-    store: store,
+    ...(store ? { store } : {}),
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
