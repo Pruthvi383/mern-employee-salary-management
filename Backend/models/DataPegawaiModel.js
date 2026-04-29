@@ -2,6 +2,7 @@ import { Sequelize } from 'sequelize';
 import db from '../config/Database.js';
 
 const {DataTypes} = Sequelize;
+const DESIGNATION_OPTIONS = ['Mason', 'Electrician', 'Plumber', 'Supervisor', 'Helper'];
 
 const DataPegawai = db.define('data_pegawai', {
     id_pegawai:{
@@ -34,6 +35,18 @@ const DataPegawai = db.define('data_pegawai', {
     jabatan: {
         type: DataTypes.STRING(50),
         allowNull: false
+    },
+    designation: {
+        type: DataTypes.VIRTUAL,
+        get() {
+            return this.getDataValue('jabatan');
+        },
+        set(value) {
+            this.setDataValue('jabatan', value);
+        },
+        validate: {
+            isIn: [DESIGNATION_OPTIONS]
+        }
     },
     tanggal_masuk: {
         type: DataTypes.STRING,

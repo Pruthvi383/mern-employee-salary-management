@@ -2,6 +2,17 @@ import DataPegawai from "../models/DataPegawaiModel.js";
 import argon2 from "argon2";
 import path from "path";
 
+const DESIGNATION_OPTIONS = ['Mason', 'Electrician', 'Plumber', 'Supervisor', 'Helper'];
+
+const mapPegawaiResponse = (pegawai) => {
+    const plainPegawai = pegawai.toJSON();
+
+    return {
+        ...plainPegawai,
+        designation: plainPegawai.jabatan
+    };
+};
+
 // menampilkan semua data Pegawai
 export const getDataPegawai = async (req, res) => {
     try {
@@ -12,7 +23,7 @@ export const getDataPegawai = async (req, res) => {
                 'status', 'photo', 'hak_akses'
             ]
         });
-        res.status(200).json(response);
+        res.status(200).json(response.map(mapPegawaiResponse));
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
@@ -32,7 +43,7 @@ export const getDataPegawaiByID = async (req, res) => {
             }
         });
         if (response) {
-            res.status(200).json(response);
+            res.status(200).json(mapPegawaiResponse(response));
         } else {
             res.status(404).json({ msg: 'Data pegawai dengan ID tersebut tidak ditemukan' })
         }
@@ -55,7 +66,7 @@ export const getDataPegawaiByNik = async (req, res) => {
             }
         });
         if (response) {
-            res.status(200).json(response);
+            res.status(200).json(mapPegawaiResponse(response));
         } else {
             res.status(404).json({ msg: 'Data pegawai dengan NIK tersebut tidak ditemukan' })
         }
@@ -79,7 +90,7 @@ export const getDataPegawaiByName = async (req, res) => {
             }
         });
         if (response) {
-            res.status(200).json(response);
+            res.status(200).json(mapPegawaiResponse(response));
         } else {
             res.status(404).json({ msg: 'Data pegawai dengan Nama tersebut tidak ditemukan' })
         }
@@ -93,12 +104,17 @@ export const createDataPegawai = async (req, res) => {
     const {
         nik, nama_pegawai,
         username, password, confPassword, jenis_kelamin,
-        jabatan, tanggal_masuk,
+        jabatan, designation, tanggal_masuk,
         status, hak_akses
     } = req.body;
+    const resolvedDesignation = designation || jabatan;
 
     if (password !== confPassword) {
         return res.status(400).json({ msg: "Password dan Konfirmasi Password Tidak Cocok" });
+    }
+
+    if (!resolvedDesignation || !DESIGNATION_OPTIONS.includes(resolvedDesignation)) {
+        return res.status(400).json({ msg: "Designation is invalid" });
     }
 
     if (!req.files || !req.files.photo) {
@@ -134,7 +150,7 @@ export const createDataPegawai = async (req, res) => {
                 username: username,
                 password: hashPassword,
                 jenis_kelamin: jenis_kelamin,
-                jabatan: jabatan,
+                jabatan: resolvedDesignation,
                 tanggal_masuk: tanggal_masuk,
                 status: status,
                 photo: fileName,
@@ -163,9 +179,14 @@ export const updateDataPegawai = async (req, res) => {
     const {
         nik, nama_pegawai,
         username, jenis_kelamin,
-        jabatan, tanggal_masuk,
+        jabatan, designation, tanggal_masuk,
         status, hak_akses
     } = req.body;
+    const resolvedDesignation = designation || jabatan;
+
+    if (!resolvedDesignation || !DESIGNATION_OPTIONS.includes(resolvedDesignation)) {
+        return res.status(400).json({ msg: "Designation is invalid" });
+    }
 
     try {
         await DataPegawai.update({
@@ -173,7 +194,7 @@ export const updateDataPegawai = async (req, res) => {
             nama_pegawai: nama_pegawai,
             username: username,
             jenis_kelamin: jenis_kelamin,
-            jabatan: jabatan,
+            jabatan: resolvedDesignation,
             tanggal_masuk: tanggal_masuk,
             status: status,
             hak_akses: hak_akses
