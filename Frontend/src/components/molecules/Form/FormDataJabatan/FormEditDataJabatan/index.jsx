@@ -13,6 +13,7 @@ const FormEditDataJabatan = () => {
     const [tjTransport, setTjTransport] = useState('');
     const [uangMakan, setUangMakan] = useState('');
     const [msg,setMsg] = useState('');
+    const [salaryError, setSalaryError] = useState('');
     const { id } = useParams();
 
     const dispatch = useDispatch();
@@ -39,6 +40,12 @@ const FormEditDataJabatan = () => {
 
     const updateDataJabatan = async (e) => {
         e.preventDefault();
+
+        if (!gajiPokok || Number(gajiPokok) <= 0) {
+            setSalaryError('Salary must be a positive number');
+            return;
+        }
+
         try {
             const formData = new FormData();
             formData.append('nama_jabatan', namaJabatan);
@@ -52,6 +59,7 @@ const FormEditDataJabatan = () => {
                 }
             });
             setMsg(response.data.msg);
+            setSalaryError('');
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil',
@@ -60,12 +68,18 @@ const FormEditDataJabatan = () => {
             });
             navigate('/data-jabatan');
         } catch (error) {
-            setMsg(error.response.data.msg);
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: error.response.data.msg
-            });
+            const errorMessage = error.response?.data?.message || error.response?.data?.msg;
+
+            if (errorMessage === 'Salary must be a positive number') {
+                setSalaryError(errorMessage);
+            } else {
+                setMsg(errorMessage);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: errorMessage
+                });
+            }
         }
     };
 
@@ -121,11 +135,16 @@ const FormEditDataJabatan = () => {
                                             id='gajiPokok'
                                             name='gajiPokok'
                                             value={gajiPokok}
-                                            onChange={(e) => setGajiPokok(e.target.value)}
+                                            onChange={(e) => {
+                                                setGajiPokok(e.target.value);
+                                                setSalaryError('');
+                                            }}
+                                            min='0'
                                             required
                                             placeholder='Masukkan gaji pokok'
                                             className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                         />
+                                        {salaryError ? <p className='mt-2 text-sm text-meta-1'>{salaryError}</p> : null}
                                     </div>
                                 </div>
 

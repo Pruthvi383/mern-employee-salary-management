@@ -56,6 +56,11 @@ export const createDataJabatan = async (req, res) => {
     const {
         id_jabatan, nama_jabatan, gaji_pokok, tj_transport, uang_makan
     } = req.body;
+
+    if (!gaji_pokok || Number(gaji_pokok) <= 0) {
+        return res.status(400).json({ message: "Salary must be a positive number" });
+    }
+
     try {
         if (req.hak_akses === "admin") {
             await DataJabatan.create({
@@ -94,6 +99,11 @@ export const updateDataJabatan = async (req, res) => {
         });
         if (!jabatan) return res.status(404).json({ msg: "Data tidak ditemukan" });
         const { nama_jabatan, gaji_pokok, tj_transport, uang_makan } = req.body;
+
+        if (!gaji_pokok || Number(gaji_pokok) <= 0) {
+            return res.status(400).json({ message: "Salary must be a positive number" });
+        }
+
         if (req.hak_akses === "admin") {
             await DataJabatan.update({
                 nama_jabatan, gaji_pokok, tj_transport, uang_makan

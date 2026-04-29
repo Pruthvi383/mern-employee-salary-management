@@ -13,6 +13,7 @@ const FormAddDataJabatan = () => {
         tjTransport: '',
         uangMakan: '',
     });
+    const [salaryError, setSalaryError] = useState('');
 
     const {
         namaJabatan,
@@ -27,6 +28,12 @@ const FormAddDataJabatan = () => {
 
     const submitDataJabatan = (e) => {
         e.preventDefault();
+
+        if (!gajiPokok || Number(gajiPokok) <= 0) {
+            setSalaryError('Salary must be a positive number');
+            return;
+        }
+
         const newFormData = new FormData();
         newFormData.append('nama_jabatan', namaJabatan);
         newFormData.append('gaji_pokok', gajiPokok);
@@ -44,11 +51,15 @@ const FormAddDataJabatan = () => {
                 });
             })
             .catch((error) => {
-                if (error.response && error.response.data && error.response.data.msg) {
+                const errorMessage = error.response?.data?.message || error.response?.data?.msg;
+
+                if (errorMessage === 'Salary must be a positive number') {
+                    setSalaryError(errorMessage);
+                } else if (errorMessage) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal',
-                        text: error.response.data.msg,
+                        text: errorMessage,
                         confirmButtonText: 'Ok',
                     });
                 } else if (error.message) {
@@ -75,6 +86,10 @@ const FormAddDataJabatan = () => {
             ...formData,
             [e.target.name]: e.target.value,
         });
+
+        if (e.target.name === 'gajiPokok') {
+            setSalaryError('');
+        }
     };
 
     useEffect(() => {
@@ -130,10 +145,12 @@ const FormAddDataJabatan = () => {
                                             name='gajiPokok'
                                             value={gajiPokok}
                                             onChange={handleChange}
+                                            min='0'
                                             required
                                             placeholder='Masukkan gaji pokok'
                                             className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                         />
+                                        {salaryError ? <p className='mt-2 text-sm text-meta-1'>{salaryError}</p> : null}
                                     </div>
                                 </div>
 
