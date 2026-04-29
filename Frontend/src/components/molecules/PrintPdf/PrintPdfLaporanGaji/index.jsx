@@ -22,7 +22,7 @@ const PrintPdfLaporanGaji = () => {
   const year = searchParams.get("year");
   const { isError, user } = useSelector((state) => state.auth);
   const { dataLaporanGaji } = useSelector((state) => state.laporanGaji);
-  const printedAt = formatDate(new Date().toISOString());
+  const printedAt = formatDate(new Date());
 
   const getDataByYear = async (selectedYear) => {
     dispatch(fetchLaporanGajiByYear(selectedYear));

@@ -22,7 +22,7 @@ const PrintPdfDataGajiPegawai = () => {
     const { isError, user } = useSelector((state) => state.auth);
     const { nama_pegawai } = useSelector((state) => state.auth.user) || {};
     const dataGajiPegawai = useSelector((state) => state.dataGajiPegawaiPrint.dataGajiPegawaiPrint);
-    const printedAt = formatDate(new Date().toISOString());
+    const printedAt = formatDate(new Date());
 
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,

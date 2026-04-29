@@ -25,7 +25,7 @@ const PrintPdfSlipGaji = () => {
 
     const { isError, user } = useSelector((state) => state.auth);
     const { dataSlipGaji } = useSelector((state) => state.slipGaji);
-    const printedAt = formatDate(new Date().toISOString());
+    const printedAt = formatDate(new Date());
 
     const getDataByYear = async (selectedYear) => {
         dispatch(fetchSlipGajiByYear(selectedYear));
